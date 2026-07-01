@@ -8,6 +8,52 @@ part of 'diary_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Emits an [AnalysisFailure] whenever a background AI analysis ultimately
+/// fails, so the UI can surface the concrete error to the user.
+
+@ProviderFor(analysisFailures)
+final analysisFailuresProvider = AnalysisFailuresProvider._();
+
+/// Emits an [AnalysisFailure] whenever a background AI analysis ultimately
+/// fails, so the UI can surface the concrete error to the user.
+
+final class AnalysisFailuresProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<AnalysisFailure>,
+          AnalysisFailure,
+          Stream<AnalysisFailure>
+        >
+    with $FutureModifier<AnalysisFailure>, $StreamProvider<AnalysisFailure> {
+  /// Emits an [AnalysisFailure] whenever a background AI analysis ultimately
+  /// fails, so the UI can surface the concrete error to the user.
+  AnalysisFailuresProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'analysisFailuresProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$analysisFailuresHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<AnalysisFailure> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<AnalysisFailure> create(Ref ref) {
+    return analysisFailures(ref);
+  }
+}
+
+String _$analysisFailuresHash() => r'e343b9a88dc158f745fab158284bcf67373d7318';
 
 @ProviderFor(DiaryController)
 final diaryControllerProvider = DiaryControllerProvider._();
@@ -33,7 +79,7 @@ final class DiaryControllerProvider
   DiaryController create() => DiaryController();
 }
 
-String _$diaryControllerHash() => r'2e69ccf7ea8aea6f11dc8d0d05a88e5dc31b53be';
+String _$diaryControllerHash() => r'5a3b3a0da00690d034d732d5aebc857e75d92cd9';
 
 abstract class _$DiaryController extends $AsyncNotifier<void> {
   FutureOr<void> build();

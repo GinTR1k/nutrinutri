@@ -3,6 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutrinutri/core/domain/user_profile.dart';
 
+/// An error raised while talking to OpenRouter that carries a message suitable
+/// for showing directly to the user (either OpenRouter's own error text or a
+/// friendly "no internet connection" message).
+class AiRequestException implements Exception {
+  const AiRequestException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class AIService {
   AIService({required this.apiKey, required this.model});
   static const String _baseUrl =
@@ -124,6 +135,48 @@ Calculate calories based on the user profile provided and standard MET values.
         error.toString().contains('ClientException');
   }
 
+  /// Whether [error] looks like a connectivity failure rather than an API
+  /// error.  Avoids importing `dart:io` (which would break web builds) by
+  /// matching on type and message text.
+  bool _isNetworkError(Object error) {
+    if (error is http.ClientException) return true;
+    final text = error.toString();
+    return text.contains('SocketException') ||
+        text.contains('Failed host lookup') ||
+        text.contains('Connection refused') ||
+        text.contains('Network is unreachable') ||
+        text.contains('Connection closed') ||
+        text.contains('XMLHttpRequest') ||
+        text.contains('Failed to fetch');
+  }
+
+  /// Builds a user-facing message from a non-200 OpenRouter response, using
+  /// OpenRouter's own error text when it can be parsed out of the body.
+  String _describeApiError(int statusCode, String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map) {
+        final error = decoded['error'];
+        if (error is Map && error['message'] is String) {
+          return 'OpenRouter error ($statusCode): ${error['message']}';
+        }
+        if (error is String && error.isNotEmpty) {
+          return 'OpenRouter error ($statusCode): $error';
+        }
+        if (decoded['message'] is String) {
+          return 'OpenRouter error ($statusCode): ${decoded['message']}';
+        }
+      }
+    } catch (_) {
+      // Body was not JSON; fall through to the raw text.
+    }
+
+    final trimmed = body.trim();
+    return trimmed.isEmpty
+        ? 'OpenRouter request failed (HTTP $statusCode).'
+        : 'OpenRouter error ($statusCode): $trimmed';
+  }
+
   Future<Map<String, dynamic>> _chatCompletion({
     required List<Map<String, dynamic>> messages,
     String? modelOverride,
@@ -153,7 +206,9 @@ Calculate calories based on the user profile provided and standard MET values.
       );
 
       if (response.statusCode != 200) {
-        throw Exception('AI Error: ${response.statusCode} - ${response.body}');
+        throw AiRequestException(
+          _describeApiError(response.statusCode, response.body),
+        );
       }
 
       final data = jsonDecode(response.body);
@@ -166,6 +221,12 @@ Calculate calories based on the user profile provided and standard MET values.
         throw Exception('Request cancelled');
       }
       debugPrint('AI Service Error: $e');
+      if (e is AiRequestException) rethrow;
+      if (_isNetworkError(e)) {
+        throw const AiRequestException(
+          'No internet connection. Please check your network and try again.',
+        );
+      }
       rethrow;
     } finally {
       if (requestId != null && _activeRequests[requestId] == client) {
