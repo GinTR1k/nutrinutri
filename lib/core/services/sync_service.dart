@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
@@ -39,12 +40,23 @@ class SyncService {
     ),
   );
 
-  static const String _clientId =
-      '650205047998-i0plaeno2mrp8e1kf6l52cth4076548p.apps.googleusercontent.com';
+  // Overridable at build time via
+  //   --dart-define=GOOGLE_CLIENT_ID=...  --dart-define=GOOGLE_CLIENT_SECRET=...
+  // so testers can point the app at their own OAuth client (e.g. one whose
+  // authorized redirect URI / JavaScript origins match localhost) without
+  // editing source.  The defaults are the app's shipped client.
+  static const String _clientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+    defaultValue:
+        '650205047998-i0plaeno2mrp8e1kf6l52cth4076548p.apps.googleusercontent.com',
+  );
 
   // This is not actually a secret, Google just calls it that.
   // The app must have this to use Google Sign In, so there's no way to hide it.
-  static const String _clientSecret = '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';
+  static const String _clientSecret = String.fromEnvironment(
+    'GOOGLE_CLIENT_SECRET',
+    defaultValue: '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',
+  );
 
   /// The scopes requested for Google Drive sync.
   static const _scopes = [
@@ -77,9 +89,57 @@ class SyncService {
       return;
     }
 
+    // Prefer deriving the profile from the ID token: it's free (no network
+    // call) and works on web/mobile where an id_token is always returned.
     final userInfo = GoogleUserInfo.fromIdToken(credentials.idToken);
-    _currentUserInfo = userInfo;
-    _userInfoController.add(userInfo);
+    if (userInfo != null) {
+      _currentUserInfo = userInfo;
+      _userInfoController.add(userInfo);
+      return;
+    }
+
+    // No usable ID token.  The desktop OAuth flow does not request the
+    // `openid` scope, so Google never returns an id_token there — leaving
+    // the UI stuck on "Sign in with Google" even though sign-in succeeded.
+    // Fall back to the OAuth2 userinfo endpoint, which the `userinfo.email`
+    // and `userinfo.profile` scopes we already request grant access to.
+    unawaited(_resolveUserInfoFromApi(credentials));
+  }
+
+  /// Fetches the signed-in user's profile from Google's userinfo endpoint
+  /// using the access token, for platforms that don't provide an id_token.
+  Future<void> _resolveUserInfoFromApi(
+    GoogleSignInCredentials credentials,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
+        headers: {'Authorization': 'Bearer ${credentials.accessToken}'},
+      );
+
+      if (response.statusCode != 200) {
+        debugPrint('Failed to fetch user info: ${response.statusCode}');
+        return;
+      }
+
+      // The credentials may have changed (sign-out, refresh) while the
+      // request was in flight; don't clobber newer state with a stale result.
+      if (!identical(_currentCredentials, credentials)) return;
+
+      final claims = json.decode(response.body) as Map<String, dynamic>;
+      final email = claims['email'] as String?;
+      if (email == null) return;
+
+      final userInfo = GoogleUserInfo(
+        email: email,
+        name: claims['name'] as String?,
+        photoUrl: claims['picture'] as String?,
+      );
+      _currentUserInfo = userInfo;
+      _userInfoController.add(userInfo);
+    } catch (e) {
+      debugPrint('Error fetching user info: $e');
+    }
   }
 
   void _listenToAuthState() {
