@@ -16,6 +16,7 @@ class SettingsFormManager {
 
   final apiKeyController = TextEditingController();
   final customModelController = TextEditingController();
+  final customFallbackModelController = TextEditingController();
   final ageController = TextEditingController();
   final weightController = TextEditingController();
   final heightController = TextEditingController();
@@ -36,6 +37,7 @@ class SettingsFormManager {
   void dispose() {
     apiKeyController.dispose();
     customModelController.dispose();
+    customFallbackModelController.dispose();
     ageController.dispose();
     weightController.dispose();
     heightController.dispose();
@@ -50,6 +52,8 @@ class SettingsFormManager {
         .loadSettings(
           onKeyLoaded: (key) => apiKeyController.text = key,
           onCustomModelLoaded: (model) => customModelController.text = model,
+          onCustomFallbackLoaded: (model) =>
+              customFallbackModelController.text = model,
           onProfileLoaded: (UserProfile profile) {
             ageController.text = profile.age.toString();
             weightController.text = profile.weightKg.toString();
@@ -97,6 +101,7 @@ class SettingsFormManager {
         .save(
           apiKey: apiKeyController.text,
           customModel: customModelController.text,
+          customFallbackModel: customFallbackModelController.text,
           age: ageController.text,
           weight: weightController.text,
           height: heightController.text,
@@ -122,6 +127,8 @@ class SettingsFormManager {
       apiKeyController.text,
       state.selectedModel,
       customModelController.text,
+      state.fallbackModel,
+      customFallbackModelController.text,
       ageController.text,
       weightController.text,
       heightController.text,

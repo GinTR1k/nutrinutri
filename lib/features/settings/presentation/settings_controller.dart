@@ -10,6 +10,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'settings_controller.g.dart';
 
+/// Sentinel used by [SettingsState.copyWith] to distinguish "argument omitted"
+/// from "explicitly set to null" for nullable fields like [fallbackModel].
+const Object _kUnset = Object();
+
 class SettingsState {
   SettingsState({
     this.isLoading = false,
@@ -34,7 +38,7 @@ class SettingsState {
     bool? isLoading,
     bool? isSyncing,
     String? selectedModel,
-    String? fallbackModel,
+    Object? fallbackModel = _kUnset,
     String? gender,
     String? activityLevel,
     List<NutritionMetricType>? homeMetricTypes,
@@ -43,7 +47,9 @@ class SettingsState {
       isLoading: isLoading ?? this.isLoading,
       isSyncing: isSyncing ?? this.isSyncing,
       selectedModel: selectedModel ?? this.selectedModel,
-      fallbackModel: fallbackModel ?? this.fallbackModel,
+      fallbackModel: identical(fallbackModel, _kUnset)
+          ? this.fallbackModel
+          : fallbackModel as String?,
       gender: gender ?? this.gender,
       activityLevel: activityLevel ?? this.activityLevel,
       homeMetricTypes: homeMetricTypes ?? this.homeMetricTypes,
@@ -62,6 +68,7 @@ class SettingsController extends _$SettingsController {
     required void Function(String key) onKeyLoaded,
     required void Function(String modelId) onCustomModelLoaded,
     required void Function(UserProfile profile) onProfileLoaded,
+    required void Function(String modelId) onCustomFallbackLoaded,
   }) async {
     final settings = ref.read(settingsServiceProvider);
 
@@ -82,7 +89,15 @@ class SettingsController extends _$SettingsController {
 
     final fallback = await settings.getFallbackModel();
     if (fallback != null) {
-      state = state.copyWith(fallbackModel: fallback);
+      final isKnownFallback = availableModels.any(
+        (m) => m.id == fallback && m.id != 'custom',
+      );
+      if (isKnownFallback) {
+        state = state.copyWith(fallbackModel: fallback);
+      } else {
+        state = state.copyWith(fallbackModel: 'custom');
+        onCustomFallbackLoaded(fallback);
+      }
     }
 
     final profile = await settings.getUserProfile();
@@ -123,6 +138,7 @@ class SettingsController extends _$SettingsController {
   Future<void> save({
     required String apiKey,
     required String customModel,
+    required String customFallbackModel,
     required String age,
     required String weight,
     required String height,
@@ -142,7 +158,10 @@ class SettingsController extends _$SettingsController {
         await settings.saveAIModel(modelToSave);
       }
 
-      await settings.saveFallbackModel(state.fallbackModel);
+      final fallbackToSave = state.fallbackModel == 'custom'
+          ? customFallbackModel.trim()
+          : state.fallbackModel;
+      await settings.saveFallbackModel(fallbackToSave);
 
       final parsedAge = int.tryParse(age.trim());
       final parsedWeight = _parseGoal(weight);
