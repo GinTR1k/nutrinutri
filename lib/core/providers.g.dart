@@ -242,7 +242,7 @@ final class AiServiceProvider
   }
 }
 
-String _$aiServiceHash() => r'b5d640fa6d61a0435966283e3d0eb4cc8ed2fc6c';
+String _$aiServiceHash() => r'd8e979113a66493076ce8f6947121c6305bd1cc4';
 
 @ProviderFor(diaryService)
 final diaryServiceProvider = DiaryServiceProvider._();

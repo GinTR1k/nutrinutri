@@ -298,6 +298,10 @@ class _SettingsSections extends StatelessWidget {
           customModelController: formManager.customModelController,
           customFallbackModelController:
               formManager.customFallbackModelController,
+          nutritionistInstructionsController:
+              formManager.nutritionistInstructionsController,
+          trainerInstructionsController:
+              formManager.trainerInstructionsController,
           selectedModel: state.selectedModel,
           fallbackModel: state.fallbackModel,
           availableModels: controller.availableModels,

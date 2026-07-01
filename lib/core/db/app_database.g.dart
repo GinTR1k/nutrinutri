@@ -2016,6 +2016,28 @@ class $AppSettingsTable extends AppSettings
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _nutritionistInstructionsMeta =
+      const VerificationMeta('nutritionistInstructions');
+  @override
+  late final GeneratedColumn<String> nutritionistInstructions =
+      GeneratedColumn<String>(
+        'nutritionist_instructions',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _trainerInstructionsMeta =
+      const VerificationMeta('trainerInstructions');
+  @override
+  late final GeneratedColumn<String> trainerInstructions =
+      GeneratedColumn<String>(
+        'trainer_instructions',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     updatedAt,
@@ -2025,6 +2047,8 @@ class $AppSettingsTable extends AppSettings
     apiKey,
     aiModel,
     fallbackModel,
+    nutritionistInstructions,
+    trainerInstructions,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2080,6 +2104,24 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('nutritionist_instructions')) {
+      context.handle(
+        _nutritionistInstructionsMeta,
+        nutritionistInstructions.isAcceptableOrUnknown(
+          data['nutritionist_instructions']!,
+          _nutritionistInstructionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('trainer_instructions')) {
+      context.handle(
+        _trainerInstructionsMeta,
+        trainerInstructions.isAcceptableOrUnknown(
+          data['trainer_instructions']!,
+          _trainerInstructionsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2117,6 +2159,14 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.string,
         data['${effectivePrefix}fallback_model'],
       ),
+      nutritionistInstructions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nutritionist_instructions'],
+      ),
+      trainerInstructions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}trainer_instructions'],
+      ),
     );
   }
 
@@ -2134,6 +2184,18 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
   final String? apiKey;
   final String aiModel;
   final String? fallbackModel;
+
+  /// Optional user-supplied guidance appended on top of the built-in
+  /// nutritionist (food analysis) instructions.  The default behaviour and the
+  /// strict-JSON response contract stay hardcoded; this only adds extra
+  /// instructional text.  Null / empty means "use the defaults only".
+  final String? nutritionistInstructions;
+
+  /// Optional user-supplied guidance appended on top of the built-in fitness
+  /// trainer (exercise analysis) instructions.  The default behaviour and the
+  /// strict-JSON response contract stay hardcoded; this only adds extra
+  /// instructional text.  Null / empty means "use the defaults only".
+  final String? trainerInstructions;
   const AppSettingsRow({
     required this.updatedAt,
     required this.updatedBy,
@@ -2142,6 +2204,8 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     this.apiKey,
     required this.aiModel,
     this.fallbackModel,
+    this.nutritionistInstructions,
+    this.trainerInstructions,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2158,6 +2222,14 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     map['ai_model'] = Variable<String>(aiModel);
     if (!nullToAbsent || fallbackModel != null) {
       map['fallback_model'] = Variable<String>(fallbackModel);
+    }
+    if (!nullToAbsent || nutritionistInstructions != null) {
+      map['nutritionist_instructions'] = Variable<String>(
+        nutritionistInstructions,
+      );
+    }
+    if (!nullToAbsent || trainerInstructions != null) {
+      map['trainer_instructions'] = Variable<String>(trainerInstructions);
     }
     return map;
   }
@@ -2177,6 +2249,12 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       fallbackModel: fallbackModel == null && nullToAbsent
           ? const Value.absent()
           : Value(fallbackModel),
+      nutritionistInstructions: nutritionistInstructions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nutritionistInstructions),
+      trainerInstructions: trainerInstructions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trainerInstructions),
     );
   }
 
@@ -2193,6 +2271,12 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       apiKey: serializer.fromJson<String?>(json['apiKey']),
       aiModel: serializer.fromJson<String>(json['aiModel']),
       fallbackModel: serializer.fromJson<String?>(json['fallbackModel']),
+      nutritionistInstructions: serializer.fromJson<String?>(
+        json['nutritionistInstructions'],
+      ),
+      trainerInstructions: serializer.fromJson<String?>(
+        json['trainerInstructions'],
+      ),
     );
   }
   @override
@@ -2206,6 +2290,10 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       'apiKey': serializer.toJson<String?>(apiKey),
       'aiModel': serializer.toJson<String>(aiModel),
       'fallbackModel': serializer.toJson<String?>(fallbackModel),
+      'nutritionistInstructions': serializer.toJson<String?>(
+        nutritionistInstructions,
+      ),
+      'trainerInstructions': serializer.toJson<String?>(trainerInstructions),
     };
   }
 
@@ -2217,6 +2305,8 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     Value<String?> apiKey = const Value.absent(),
     String? aiModel,
     Value<String?> fallbackModel = const Value.absent(),
+    Value<String?> nutritionistInstructions = const Value.absent(),
+    Value<String?> trainerInstructions = const Value.absent(),
   }) => AppSettingsRow(
     updatedAt: updatedAt ?? this.updatedAt,
     updatedBy: updatedBy ?? this.updatedBy,
@@ -2227,6 +2317,12 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     fallbackModel: fallbackModel.present
         ? fallbackModel.value
         : this.fallbackModel,
+    nutritionistInstructions: nutritionistInstructions.present
+        ? nutritionistInstructions.value
+        : this.nutritionistInstructions,
+    trainerInstructions: trainerInstructions.present
+        ? trainerInstructions.value
+        : this.trainerInstructions,
   );
   AppSettingsRow copyWithCompanion(AppSettingsCompanion data) {
     return AppSettingsRow(
@@ -2239,6 +2335,12 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
       fallbackModel: data.fallbackModel.present
           ? data.fallbackModel.value
           : this.fallbackModel,
+      nutritionistInstructions: data.nutritionistInstructions.present
+          ? data.nutritionistInstructions.value
+          : this.nutritionistInstructions,
+      trainerInstructions: data.trainerInstructions.present
+          ? data.trainerInstructions.value
+          : this.trainerInstructions,
     );
   }
 
@@ -2251,7 +2353,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
           ..write('id: $id, ')
           ..write('apiKey: $apiKey, ')
           ..write('aiModel: $aiModel, ')
-          ..write('fallbackModel: $fallbackModel')
+          ..write('fallbackModel: $fallbackModel, ')
+          ..write('nutritionistInstructions: $nutritionistInstructions, ')
+          ..write('trainerInstructions: $trainerInstructions')
           ..write(')'))
         .toString();
   }
@@ -2265,6 +2369,8 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
     apiKey,
     aiModel,
     fallbackModel,
+    nutritionistInstructions,
+    trainerInstructions,
   );
   @override
   bool operator ==(Object other) =>
@@ -2276,7 +2382,9 @@ class AppSettingsRow extends DataClass implements Insertable<AppSettingsRow> {
           other.id == this.id &&
           other.apiKey == this.apiKey &&
           other.aiModel == this.aiModel &&
-          other.fallbackModel == this.fallbackModel);
+          other.fallbackModel == this.fallbackModel &&
+          other.nutritionistInstructions == this.nutritionistInstructions &&
+          other.trainerInstructions == this.trainerInstructions);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
@@ -2287,6 +2395,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
   final Value<String?> apiKey;
   final Value<String> aiModel;
   final Value<String?> fallbackModel;
+  final Value<String?> nutritionistInstructions;
+  final Value<String?> trainerInstructions;
   const AppSettingsCompanion({
     this.updatedAt = const Value.absent(),
     this.updatedBy = const Value.absent(),
@@ -2295,6 +2405,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     this.apiKey = const Value.absent(),
     this.aiModel = const Value.absent(),
     this.fallbackModel = const Value.absent(),
+    this.nutritionistInstructions = const Value.absent(),
+    this.trainerInstructions = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.updatedAt = const Value.absent(),
@@ -2304,6 +2416,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     this.apiKey = const Value.absent(),
     this.aiModel = const Value.absent(),
     this.fallbackModel = const Value.absent(),
+    this.nutritionistInstructions = const Value.absent(),
+    this.trainerInstructions = const Value.absent(),
   });
   static Insertable<AppSettingsRow> custom({
     Expression<int>? updatedAt,
@@ -2313,6 +2427,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     Expression<String>? apiKey,
     Expression<String>? aiModel,
     Expression<String>? fallbackModel,
+    Expression<String>? nutritionistInstructions,
+    Expression<String>? trainerInstructions,
   }) {
     return RawValuesInsertable({
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -2322,6 +2438,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
       if (apiKey != null) 'api_key': apiKey,
       if (aiModel != null) 'ai_model': aiModel,
       if (fallbackModel != null) 'fallback_model': fallbackModel,
+      if (nutritionistInstructions != null)
+        'nutritionist_instructions': nutritionistInstructions,
+      if (trainerInstructions != null)
+        'trainer_instructions': trainerInstructions,
     });
   }
 
@@ -2333,6 +2453,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     Value<String?>? apiKey,
     Value<String>? aiModel,
     Value<String?>? fallbackModel,
+    Value<String?>? nutritionistInstructions,
+    Value<String?>? trainerInstructions,
   }) {
     return AppSettingsCompanion(
       updatedAt: updatedAt ?? this.updatedAt,
@@ -2342,6 +2464,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
       apiKey: apiKey ?? this.apiKey,
       aiModel: aiModel ?? this.aiModel,
       fallbackModel: fallbackModel ?? this.fallbackModel,
+      nutritionistInstructions:
+          nutritionistInstructions ?? this.nutritionistInstructions,
+      trainerInstructions: trainerInstructions ?? this.trainerInstructions,
     );
   }
 
@@ -2369,6 +2494,14 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
     if (fallbackModel.present) {
       map['fallback_model'] = Variable<String>(fallbackModel.value);
     }
+    if (nutritionistInstructions.present) {
+      map['nutritionist_instructions'] = Variable<String>(
+        nutritionistInstructions.value,
+      );
+    }
+    if (trainerInstructions.present) {
+      map['trainer_instructions'] = Variable<String>(trainerInstructions.value);
+    }
     return map;
   }
 
@@ -2381,7 +2514,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsRow> {
           ..write('id: $id, ')
           ..write('apiKey: $apiKey, ')
           ..write('aiModel: $aiModel, ')
-          ..write('fallbackModel: $fallbackModel')
+          ..write('fallbackModel: $fallbackModel, ')
+          ..write('nutritionistInstructions: $nutritionistInstructions, ')
+          ..write('trainerInstructions: $trainerInstructions')
           ..write(')'))
         .toString();
   }
@@ -3623,6 +3758,8 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String?> apiKey,
       Value<String> aiModel,
       Value<String?> fallbackModel,
+      Value<String?> nutritionistInstructions,
+      Value<String?> trainerInstructions,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -3633,6 +3770,8 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String?> apiKey,
       Value<String> aiModel,
       Value<String?> fallbackModel,
+      Value<String?> nutritionistInstructions,
+      Value<String?> trainerInstructions,
     });
 
 class $$AppSettingsTableFilterComposer
@@ -3676,6 +3815,16 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<String> get fallbackModel => $composableBuilder(
     column: $table.fallbackModel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nutritionistInstructions => $composableBuilder(
+    column: $table.nutritionistInstructions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get trainerInstructions => $composableBuilder(
+    column: $table.trainerInstructions,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3723,6 +3872,16 @@ class $$AppSettingsTableOrderingComposer
     column: $table.fallbackModel,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get nutritionistInstructions => $composableBuilder(
+    column: $table.nutritionistInstructions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get trainerInstructions => $composableBuilder(
+    column: $table.trainerInstructions,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableAnnotationComposer
@@ -3754,6 +3913,16 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<String> get fallbackModel => $composableBuilder(
     column: $table.fallbackModel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nutritionistInstructions => $composableBuilder(
+    column: $table.nutritionistInstructions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get trainerInstructions => $composableBuilder(
+    column: $table.trainerInstructions,
     builder: (column) => column,
   );
 }
@@ -3796,6 +3965,8 @@ class $$AppSettingsTableTableManager
                 Value<String?> apiKey = const Value.absent(),
                 Value<String> aiModel = const Value.absent(),
                 Value<String?> fallbackModel = const Value.absent(),
+                Value<String?> nutritionistInstructions = const Value.absent(),
+                Value<String?> trainerInstructions = const Value.absent(),
               }) => AppSettingsCompanion(
                 updatedAt: updatedAt,
                 updatedBy: updatedBy,
@@ -3804,6 +3975,8 @@ class $$AppSettingsTableTableManager
                 apiKey: apiKey,
                 aiModel: aiModel,
                 fallbackModel: fallbackModel,
+                nutritionistInstructions: nutritionistInstructions,
+                trainerInstructions: trainerInstructions,
               ),
           createCompanionCallback:
               ({
@@ -3814,6 +3987,8 @@ class $$AppSettingsTableTableManager
                 Value<String?> apiKey = const Value.absent(),
                 Value<String> aiModel = const Value.absent(),
                 Value<String?> fallbackModel = const Value.absent(),
+                Value<String?> nutritionistInstructions = const Value.absent(),
+                Value<String?> trainerInstructions = const Value.absent(),
               }) => AppSettingsCompanion.insert(
                 updatedAt: updatedAt,
                 updatedBy: updatedBy,
@@ -3822,6 +3997,8 @@ class $$AppSettingsTableTableManager
                 apiKey: apiKey,
                 aiModel: aiModel,
                 fallbackModel: fallbackModel,
+                nutritionistInstructions: nutritionistInstructions,
+                trainerInstructions: trainerInstructions,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
