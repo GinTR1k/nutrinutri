@@ -61,12 +61,13 @@ class AddEntryController extends _$AddEntryController {
     );
   }
 
-  void initializeWithType(EntryType type) {
+  void initializeWithType(EntryType type, {DateTime? date}) {
     state = state.copyWith(
       type: type,
       selectedIcon: type == EntryType.exercise
           ? 'directions_run'
           : 'restaurant',
+      selectedDate: date,
     );
   }
 
