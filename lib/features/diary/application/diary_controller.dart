@@ -15,11 +15,36 @@ import 'package:uuid/uuid.dart';
 
 part 'diary_controller.g.dart';
 
+/// Describes a failed AI analysis in terms suitable for showing to the user.
+class AnalysisFailure {
+  const AnalysisFailure({required this.title, required this.message});
+
+  /// What was being analyzed (the user's prompt, or a generic label).
+  final String title;
+
+  /// The error text: OpenRouter's own message or a "no internet" message.
+  final String message;
+}
+
+/// Emits an [AnalysisFailure] whenever a background AI analysis ultimately
+/// fails, so the UI can surface the concrete error to the user.
+@riverpod
+Stream<AnalysisFailure> analysisFailures(Ref ref) {
+  return ref.watch(diaryControllerProvider.notifier).analysisErrors;
+}
+
 @Riverpod(keepAlive: true)
 class DiaryController extends _$DiaryController {
+  final StreamController<AnalysisFailure> _analysisErrorController =
+      StreamController<AnalysisFailure>.broadcast();
+
+  /// Broadcast stream of analysis failures (see [analysisFailuresProvider]).
+  Stream<AnalysisFailure> get analysisErrors =>
+      _analysisErrorController.stream;
+
   @override
   FutureOr<void> build() {
-    // No state needed initially
+    ref.onDispose(_analysisErrorController.close);
   }
 
   Future<void> addOptimisticEntry({
@@ -109,6 +134,8 @@ class DiaryController extends _$DiaryController {
     final userProfile = await settingsService.getUserProfile();
     final base64Image = await _imageToBase64(entry.imagePath);
 
+    Object? lastError;
+
     try {
       final result = await _analyzeEntry(
         aiService: aiService,
@@ -122,6 +149,7 @@ class DiaryController extends _$DiaryController {
       if (_isCancellationError(error)) {
         return;
       }
+      lastError = error;
     }
 
     if (fallbackModel != null && fallbackModel.isNotEmpty) {
@@ -139,10 +167,30 @@ class DiaryController extends _$DiaryController {
         if (_isCancellationError(error)) {
           return;
         }
+        lastError = error;
       }
     }
 
     await _updateFailed(entry);
+    _emitAnalysisError(entry, lastError);
+  }
+
+  void _emitAnalysisError(DiaryEntry entry, Object? error) {
+    if (_analysisErrorController.isClosed) return;
+
+    final message = error is AiRequestException
+        ? error.message
+        : 'Could not analyze this entry.\n\n${error ?? 'Unknown error'}';
+
+    final prompt = entry.description?.trim();
+    _analysisErrorController.add(
+      AnalysisFailure(
+        title: prompt != null && prompt.isNotEmpty
+            ? prompt
+            : _fallbackName(entry.type),
+        message: message,
+      ),
+    );
   }
 
   Future<void> _updateSuccess(

@@ -20,12 +20,45 @@ class DashboardPage extends ConsumerStatefulWidget {
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
   late DateTime _selectedDate;
+  bool _errorDialogVisible = false;
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _selectedDate = DateTime(now.year, now.month, now.day);
+  }
+
+  void _showAnalysisErrorDialog(AnalysisFailure failure) {
+    if (!mounted || _errorDialogVisible) return;
+    _errorDialogVisible = true;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.error_outline),
+        title: const Text('Analysis Failed'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                failure.title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Gap(12),
+              Text(failure.message),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    ).whenComplete(() => _errorDialogVisible = false);
   }
 
   void _updateDate(int days) {
@@ -76,6 +109,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = PlatformHelper.isDesktopOrWeb;
+
+    ref.listen(analysisFailuresProvider, (previous, next) {
+      final failure = next.value;
+      if (failure != null) {
+        _showAnalysisErrorDialog(failure);
+      }
+    });
 
     return LayoutBuilder(
       builder: (context, constraints) {
