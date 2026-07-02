@@ -69,9 +69,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           final initialType = typeStr == 'exercise'
               ? EntryType.exercise
               : EntryType.food;
+          final dateMillis = int.tryParse(
+            state.uri.queryParameters['date'] ?? '',
+          );
+          final initialDate = dateMillis != null
+              ? DateTime.fromMillisecondsSinceEpoch(dateMillis)
+              : null;
           return MaterialPage(
             key: state.pageKey,
-            child: AddEntryPage(existingEntry: entry, initialType: initialType),
+            child: AddEntryPage(
+              existingEntry: entry,
+              initialType: initialType,
+              initialDate: initialDate,
+            ),
           );
         },
       ),

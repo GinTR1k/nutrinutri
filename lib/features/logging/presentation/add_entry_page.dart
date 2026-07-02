@@ -16,9 +16,14 @@ class AddEntryPage extends ConsumerStatefulWidget {
     super.key,
     this.existingEntry,
     this.initialType = EntryType.food,
+    this.initialDate,
   });
   final DiaryEntry? existingEntry;
   final EntryType initialType;
+
+  /// The day the new entry should be logged on (the day selected on the
+  /// dashboard). Defaults to today when null.
+  final DateTime? initialDate;
 
   @override
   ConsumerState<AddEntryPage> createState() => _AddEntryPageState();
@@ -42,9 +47,12 @@ class _AddEntryPageState extends ConsumerState<AddEntryPage> {
         _formManager.initializeWithEntry(widget.existingEntry!);
       });
     } else {
-      // Initialize with type
+      // Initialize with type (and the day selected on the dashboard)
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _formManager.initializeWithType(widget.initialType);
+        _formManager.initializeWithType(
+          widget.initialType,
+          date: widget.initialDate,
+        );
       });
     }
   }

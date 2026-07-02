@@ -59,8 +59,10 @@ class AddEntryFormManager {
     onStateChanged();
   }
 
-  void initializeWithType(EntryType type) {
-    ref.read(addEntryControllerProvider.notifier).initializeWithType(type);
+  void initializeWithType(EntryType type, {DateTime? date}) {
+    ref
+        .read(addEntryControllerProvider.notifier)
+        .initializeWithType(type, date: date);
     onStateChanged();
   }
 

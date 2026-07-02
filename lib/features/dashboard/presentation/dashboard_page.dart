@@ -73,11 +73,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   }
 
   String _addEntryRoute({required bool isExercise}) {
-    if (!isExercise) return '/add-entry';
-
     return Uri(
       path: '/add-entry',
-      queryParameters: {'type': 'exercise'},
+      queryParameters: {
+        if (isExercise) 'type': 'exercise',
+        // Log onto the day currently selected on the dashboard, not today.
+        'date': _selectedDate.millisecondsSinceEpoch.toString(),
+      },
     ).toString();
   }
 
