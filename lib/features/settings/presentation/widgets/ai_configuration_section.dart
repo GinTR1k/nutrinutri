@@ -8,6 +8,7 @@ class AIConfigurationSection extends StatelessWidget {
     super.key,
     required this.apiKeyController,
     required this.customModelController,
+    required this.customFallbackModelController,
     required this.selectedModel,
     this.fallbackModel,
     required this.availableModels,
@@ -16,6 +17,7 @@ class AIConfigurationSection extends StatelessWidget {
   });
   final TextEditingController apiKeyController;
   final TextEditingController customModelController;
+  final TextEditingController customFallbackModelController;
   final String selectedModel;
   final String? fallbackModel;
   final List<AIModelInfo> availableModels;
@@ -222,6 +224,17 @@ class AIConfigurationSection extends StatelessWidget {
             includeNone: true,
             onChanged: onFallbackModelChanged,
           ),
+          if (fallbackModel == 'custom') ...[
+            const Gap(8),
+            TextField(
+              controller: customFallbackModelController,
+              decoration: const InputDecoration(
+                labelText: 'Custom Fallback Model ID (OpenRouter)',
+                border: OutlineInputBorder(),
+                hintText: 'e.g. meta-llama/llama-3-70b-instruct',
+              ),
+            ),
+          ],
         ],
       ],
     );

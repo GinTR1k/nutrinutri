@@ -319,6 +319,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         return AIConfigurationSection(
           apiKeyController: _formManager.apiKeyController,
           customModelController: _formManager.customModelController,
+          customFallbackModelController:
+              _formManager.customFallbackModelController,
           selectedModel: state.selectedModel,
           fallbackModel: state.fallbackModel,
           availableModels: controller.availableModels,

@@ -296,6 +296,8 @@ class _SettingsSections extends StatelessWidget {
         AIConfigurationSection(
           apiKeyController: formManager.apiKeyController,
           customModelController: formManager.customModelController,
+          customFallbackModelController:
+              formManager.customFallbackModelController,
           selectedModel: state.selectedModel,
           fallbackModel: state.fallbackModel,
           availableModels: controller.availableModels,
