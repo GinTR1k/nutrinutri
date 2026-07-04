@@ -19,7 +19,7 @@ class SettingsState {
     this.isLoading = false,
     this.isSyncing = false,
     this.selectedModel = 'google/gemini-3-flash-preview',
-    this.fallbackModel,
+    this.fallbackModel = 'openai/gpt-5.5',
     this.gender = 'male',
     this.activityLevel = 'sedentary',
     this.homeMetricTypes = defaultHomeMetricTypes,
