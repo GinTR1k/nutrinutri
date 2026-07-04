@@ -40,6 +40,17 @@ post_install do |installer|
     flutter_additional_macos_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+
+      if target.name == 'sqlite3'
+        other_cflags = config.build_settings['OTHER_CFLAGS'] || '$(inherited)'
+        config.build_settings['OTHER_CFLAGS'] = [
+          other_cflags,
+          '-Wno-ambiguous-macro',
+          '-Wno-shorten-64-to-32',
+          '-Wno-comma',
+          '-Wno-unreachable-code',
+        ].join(' ')
+      end
     end
   end
 end
