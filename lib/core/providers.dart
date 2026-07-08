@@ -45,7 +45,14 @@ Future<AIService> aiService(Ref ref) async {
   final apiKey = await ref.watch(apiKeyProvider.future);
   final settings = ref.watch(settingsServiceProvider);
   final model = await settings.getAIModel();
-  return AIService(apiKey: apiKey ?? '', model: model);
+  final nutritionistInstructions = await settings.getNutritionistInstructions();
+  final trainerInstructions = await settings.getTrainerInstructions();
+  return AIService(
+    apiKey: apiKey ?? '',
+    model: model,
+    nutritionistInstructions: nutritionistInstructions,
+    trainerInstructions: trainerInstructions,
+  );
 }
 
 @Riverpod(keepAlive: true)

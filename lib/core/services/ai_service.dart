@@ -15,11 +15,43 @@ class AiRequestException implements Exception {
 }
 
 class AIService {
-  AIService({required this.apiKey, required this.model});
+  AIService({
+    required this.apiKey,
+    required this.model,
+    this.nutritionistInstructions,
+    this.trainerInstructions,
+  });
   static const String _baseUrl =
       'https://openrouter.ai/api/v1/chat/completions';
   final String apiKey;
   final String model;
+
+  /// Optional user-supplied guidance appended on top of the built-in
+  /// nutritionist (food analysis) instructions.  The default guidance and
+  /// strict-JSON response contract are always kept, so parsing never breaks.
+  /// Null / empty means "use the defaults only".
+  final String? nutritionistInstructions;
+
+  /// Optional user-supplied guidance appended on top of the built-in fitness
+  /// trainer (exercise analysis) instructions.  The default guidance and
+  /// strict-JSON response contract are always kept, so parsing never breaks.
+  /// Null / empty means "use the defaults only".
+  final String? trainerInstructions;
+
+  /// Default instruction shown to the model for food analysis.
+  static const String _defaultFoodGuidance =
+      'You are a nutritionist AI. Analyze the food provided (text or image).';
+
+  /// Default instruction shown to the model for exercise analysis.
+  static const String _defaultExerciseGuidance =
+      'You are a fitness expert AI. Analyze the exercise described.';
+
+  /// Returns [base] with the user's [extra] instructions appended when present.
+  String _guidance(String base, String? extra) {
+    final trimmed = extra?.trim();
+    if (trimmed == null || trimmed.isEmpty) return base;
+    return '$base\n\nAdditional user instructions:\n$trimmed';
+  }
 
   // Track active clients for cancellation
   final Map<String, http.Client> _activeRequests = {};
@@ -39,7 +71,7 @@ class AIService {
       {
         'role': 'system',
         'content': '''
-You are a nutritionist AI. Analyze the food provided (text or image).
+${_guidance(_defaultFoodGuidance, nutritionistInstructions)}
 Return STRICT JSON ONLY. No markdown, no intro/outro.
 Select the most appropriate icon from this list:
 [bakery_dining, brunch_dining, bento, cake, coffee, cookie, egg_alt, fastfood, flatware, liquor, microwave, nightlife, outdoor_grill, ramen_dining, restaurant, rice_bowl, sports_bar, tapas]
@@ -107,7 +139,7 @@ If unclear, provide best guess with lower confidence.
         'role': 'system',
         'content':
             '''
-You are a fitness expert AI. Analyze the exercise described.
+${_guidance(_defaultExerciseGuidance, trainerInstructions)}
 $profileInfo
 Return STRICT JSON ONLY. No markdown.
 Select the most appropriate icon from this list:

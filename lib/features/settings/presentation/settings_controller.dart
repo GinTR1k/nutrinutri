@@ -69,12 +69,26 @@ class SettingsController extends _$SettingsController {
     required void Function(String modelId) onCustomModelLoaded,
     required void Function(UserProfile profile) onProfileLoaded,
     required void Function(String modelId) onCustomFallbackLoaded,
+    required void Function(String instructions) onNutritionistInstructionsLoaded,
+    required void Function(String instructions) onTrainerInstructionsLoaded,
   }) async {
     final settings = ref.read(settingsServiceProvider);
 
     final key = await ref.read(apiKeyProvider.future);
     if (key != null) {
       onKeyLoaded(key);
+    }
+
+    final nutritionistInstructions = await settings
+        .getNutritionistInstructions();
+    if (nutritionistInstructions != null &&
+        nutritionistInstructions.isNotEmpty) {
+      onNutritionistInstructionsLoaded(nutritionistInstructions);
+    }
+
+    final trainerInstructions = await settings.getTrainerInstructions();
+    if (trainerInstructions != null && trainerInstructions.isNotEmpty) {
+      onTrainerInstructionsLoaded(trainerInstructions);
     }
 
     final model = await settings.getAIModel();
@@ -139,6 +153,8 @@ class SettingsController extends _$SettingsController {
     required String apiKey,
     required String customModel,
     required String customFallbackModel,
+    required String nutritionistInstructions,
+    required String trainerInstructions,
     required String age,
     required String weight,
     required String height,
@@ -150,6 +166,8 @@ class SettingsController extends _$SettingsController {
     try {
       final settings = ref.read(settingsServiceProvider);
       await settings.saveApiKey(apiKey.trim());
+      await settings.saveNutritionistInstructions(nutritionistInstructions);
+      await settings.saveTrainerInstructions(trainerInstructions);
 
       final modelToSave = state.selectedModel == 'custom'
           ? customModel.trim()

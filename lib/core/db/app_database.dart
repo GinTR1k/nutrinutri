@@ -74,6 +74,18 @@ class AppSettings extends Table with AuditColumns {
       text().withDefault(const Constant('google/gemini-3-flash-preview'))();
   TextColumn get fallbackModel => text().nullable()();
 
+  /// Optional user-supplied guidance appended on top of the built-in
+  /// nutritionist (food analysis) instructions.  The default behaviour and the
+  /// strict-JSON response contract stay hardcoded; this only adds extra
+  /// instructional text.  Null / empty means "use the defaults only".
+  TextColumn get nutritionistInstructions => text().nullable()();
+
+  /// Optional user-supplied guidance appended on top of the built-in fitness
+  /// trainer (exercise analysis) instructions.  The default behaviour and the
+  /// strict-JSON response contract stay hardcoded; this only adds extra
+  /// instructional text.  Null / empty means "use the defaults only".
+  TextColumn get trainerInstructions => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -109,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -119,6 +131,10 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await _migrateFromV1();
+      }
+      if (from < 3) {
+        await m.addColumn(appSettings, appSettings.nutritionistInstructions);
+        await m.addColumn(appSettings, appSettings.trainerInstructions);
       }
     },
   );

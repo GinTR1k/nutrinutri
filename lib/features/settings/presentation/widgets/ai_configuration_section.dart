@@ -9,6 +9,8 @@ class AIConfigurationSection extends StatelessWidget {
     required this.apiKeyController,
     required this.customModelController,
     required this.customFallbackModelController,
+    required this.nutritionistInstructionsController,
+    required this.trainerInstructionsController,
     required this.selectedModel,
     this.fallbackModel,
     required this.availableModels,
@@ -18,6 +20,8 @@ class AIConfigurationSection extends StatelessWidget {
   final TextEditingController apiKeyController;
   final TextEditingController customModelController;
   final TextEditingController customFallbackModelController;
+  final TextEditingController nutritionistInstructionsController;
+  final TextEditingController trainerInstructionsController;
   final String selectedModel;
   final String? fallbackModel;
   final List<AIModelInfo> availableModels;
@@ -236,6 +240,47 @@ class AIConfigurationSection extends StatelessWidget {
             ),
           ],
         ],
+        const Gap(16),
+        TextField(
+          controller: nutritionistInstructionsController,
+          minLines: 3,
+          maxLines: 8,
+          keyboardType: TextInputType.multiline,
+          decoration: const InputDecoration(
+            labelText: 'Nutritionist Instructions (Optional)',
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+            helperText:
+                'Extra guidance for food analysis, added on top of the '
+                'built-in instructions. Use it to get responses in your '
+                'language, set your country, or refine how portions are '
+                'estimated. Leave empty for the default.',
+            helperMaxLines: 4,
+            hintText:
+                'e.g. Reply in Slovak; I live in Slovakia; estimate '
+                'portions generously.',
+          ),
+        ),
+        const Gap(16),
+        TextField(
+          controller: trainerInstructionsController,
+          minLines: 3,
+          maxLines: 8,
+          keyboardType: TextInputType.multiline,
+          decoration: const InputDecoration(
+            labelText: 'Fitness Trainer Instructions (Optional)',
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+            helperText:
+                'Extra guidance for exercise analysis, added on top of the '
+                'built-in instructions. Use it to get responses in your '
+                'language or refine how burned calories are estimated. Leave '
+                'empty for the default.',
+            helperMaxLines: 4,
+            hintText:
+                'e.g. Reply in Slovak; I mostly do strength training.',
+          ),
+        ),
       ],
     );
   }

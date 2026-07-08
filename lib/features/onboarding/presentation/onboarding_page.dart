@@ -321,6 +321,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           customModelController: _formManager.customModelController,
           customFallbackModelController:
               _formManager.customFallbackModelController,
+          nutritionistInstructionsController:
+              _formManager.nutritionistInstructionsController,
+          trainerInstructionsController:
+              _formManager.trainerInstructionsController,
           selectedModel: state.selectedModel,
           fallbackModel: state.fallbackModel,
           availableModels: controller.availableModels,
